@@ -1,0 +1,47 @@
+{
+  "weather": {
+    "東京": {"temp": 12, "condition": "晴れ", "humidity": 45},
+    "大阪": {"temp": 14, "condition": "曇り", "humidity": 55},
+    "福岡": {"temp": 15, "condition": "晴れ時々曇り", "humidity": 50},
+    "札幌": {"temp": -2, "condition": "雪", "humidity": 70},
+    "那覇": {"temp": 22, "condition": "晴れ", "humidity": 65}
+  },
+  "stocks": {
+    "AAPL": {"price": 195.50, "change": "+1.2%", "name": "Apple Inc."},
+    "GOOGL": {"price": 175.30, "change": "-0.5%", "name": "Alphabet Inc."},
+    "7203.T": {"price": 2850, "change": "+0.8%", "name": "トヨタ自動車"},
+    "9984.T": {"price": 8500, "change": "+2.1%", "name": "ソフトバンクグループ"}
+  },
+  "news": {
+    "テクノロジー": [
+      "AI技術の最新動向: LLMの進化が加速",
+      "クラウドコンピューティング市場が拡大"
+    ],
+    "経済": [
+      "日銀の金融政策決定会合の結果",
+      "円相場、150円台で推移"
+    ],
+    "スポーツ": [
+      "サッカー日本代表、ワールドカップ予選突破",
+      "大谷翔平選手、MVPを受賞"
+    ]
+  },
+  "dictionary": {
+    "AI": "Artificial Intelligence（人工知能）の略。人間の知能を模倣するコンピュータシステム。",
+    "LLM": "Large Language Model（大規模言語モデル）の略。大量のテキストデータで訓練された言語モデル。",
+    "API": "Application Programming Interface。ソフトウェア間の通信インターフェース。",
+    "middleware": "ミドルウェア。アプリケーションとOSの間で動作するソフトウェア層。"
+  },
+  "calendar": {
+    "2025-12-10": ["10:00 チームミーティング", "14:00 クライアント打ち合わせ"],
+    "2025-12-11": ["09:00 朝会", "16:00 レビュー会議"],
+    "2025-12-15": ["終日 システムメンテナンス"]
+  },
+  "currency_rates": {
+    "JPY": 150.0,
+    "USD": 1.0,
+    "EUR": 0.92,
+    "GBP": 0.79,
+    "CNY": 7.25
+  }
+}

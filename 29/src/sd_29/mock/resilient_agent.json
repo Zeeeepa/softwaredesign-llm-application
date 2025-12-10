@@ -1,0 +1,25 @@
+{
+  "web_results": {
+    "python": "Pythonは汎用プログラミング言語で、シンプルな文法と豊富なライブラリが特徴です。",
+    "langchain": "LangChainはLLMアプリケーション開発のためのフレームワークで、エージェント、チェーン、メモリなどの機能を提供します。",
+    "ai": "人工知能(AI)は機械学習、深層学習、自然言語処理などの技術を含む広い分野です。",
+    "default": "検索結果: 関連する情報が見つかりました。詳細については専門的な資料をご参照ください。"
+  },
+  "database": {
+    "users": [
+      {"id": 1, "name": "田中太郎", "department": "開発部"},
+      {"id": 2, "name": "山田花子", "department": "営業部"},
+      {"id": 3, "name": "鈴木一郎", "department": "経理部"}
+    ],
+    "products": [
+      {"id": 101, "name": "製品A", "price": 10000},
+      {"id": 102, "name": "製品B", "price": 20000},
+      {"id": 103, "name": "製品C", "price": 15000}
+    ],
+    "sales": [
+      {"product_id": 101, "quantity": 50, "date": "2025-12"},
+      {"product_id": 102, "quantity": 30, "date": "2025-12"},
+      {"product_id": 103, "quantity": 45, "date": "2025-12"}
+    ]
+  }
+}

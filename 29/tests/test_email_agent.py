@@ -1,30 +1,26 @@
 """
-シナリオ1: メール処理エージェントのマルチターンテスト
-
-自然な会話フローでミドルウェアの動作を検証:
+メールエージェントのマルチターンテスト
 
 テスト内容:
-- Turn 1: 「メール一覧を見せて」 - メール一覧表示
-- Turn 2: 「メール001を読んで」 - メール読み取り
-- Turn 3: 「田中さんに返信して。本文は『了解しました。何かあれば090-XXXXに連絡ください』で」
-          → PIIMiddleware: 電話番号を含む入力がブロックされることを確認 (strategy=block)
-- Turn 4: 「田中さんに返信して」 - HITL interruptで承認待ち (HumanInTheLoopMiddleware)
-- Turn 5: 承認して送信完了
+- Turn 1: メール一覧表示
+- Turn 2: メール読み取り
+- Turn 3: PIIブロック確認 (電話番号)
+- Turn 4: HITL interrupt確認
+- Turn 5: 承認後の送信完了
 """
 from langgraph.types import Command
 
-from sd_29.agents.email_assistant import (
-    SENT_EMAILS,
+from sd_29.agents.email_agent import (
     clear_sent_emails,
-    create_email_assistant_agent,
+    create_email_agent,
+    get_sent_emails,
 )
 from tests.conftest import extract_response
 
 
-def test_email_assistant_multi_turn(thread_id):
-    """メールアシスタントのマルチターンシナリオテスト"""
-    # エージェント作成
-    agent = create_email_assistant_agent()
+def test_email_agent_multi_turn(thread_id):
+    """メールエージェントのマルチターンテスト"""
+    agent = create_email_agent()
     config = {"configurable": {"thread_id": thread_id}}
 
     # 送信済みメールをクリア
@@ -144,10 +140,11 @@ def test_email_assistant_multi_turn(thread_id):
     print(f"Response: {response5[:300]}...")
 
     # メールが送信されたか確認
-    assert len(SENT_EMAILS) > 0, "SENT_EMAILSが空です - メールが送信されていません"
-    print(f"[OK] メール送信成功: {len(SENT_EMAILS)}件")
-    print(f"送信先: {SENT_EMAILS[0].get('to', 'N/A')}")
-    print(f"件名: {SENT_EMAILS[0].get('subject', 'N/A')}")
+    sent_emails = get_sent_emails()
+    assert len(sent_emails) > 0, "メールが送信されていません"
+    print(f"[OK] メール送信成功: {len(sent_emails)}件")
+    print(f"送信先: {sent_emails[0].get('to', 'N/A')}")
+    print(f"件名: {sent_emails[0].get('subject', 'N/A')}")
 
     print("\n" + "=" * 60)
     print("テスト完了")
@@ -157,7 +154,7 @@ def test_email_assistant_multi_turn(thread_id):
     print("\n=== 最終検証結果 ===")
     print("Turn 1 (メール一覧): OK")
     print("Turn 2 (メール読み取り): OK")
-    print("Turn 3 (PIIマスキング): OK")
+    print("Turn 3 (PIIブロック): OK")
     print("Turn 4 (HITL interrupt): OK")
     print("Turn 5 (承認・送信): OK")
-    print(f"SENT_EMAILS: {SENT_EMAILS}")
+    print(f"sent_emails: {get_sent_emails()}")
