@@ -6,13 +6,13 @@ import uuid
 
 import streamlit as st
 
-from sd_29.agents.tool_selector_agent import (
+from sd_30.agents.tool_selector_agent import (
     clear_selected_tools,
     create_tool_selector_agent,
     get_all_tool_names,
     get_selected_tools,
 )
-from sd_29.controllers import invoke_agent
+from sd_30.controllers import invoke_agent
 
 
 @st.cache_resource

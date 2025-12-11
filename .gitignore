@@ -138,3 +138,4 @@ CLAUDE.md
 .DS_Store
 
 tmp/
+repomix.config.json

@@ -4,14 +4,14 @@
 
 import streamlit as st
 
-from sd_29.agents.email_agent import (
+from sd_30.agents.email_agent import (
     clear_sent_emails,
     create_email_agent,
     get_email_list,
     get_sent_emails,
 )
-from sd_29.controllers import invoke_agent, resume_agent
-from sd_29.pages.common import reset_conversation
+from sd_30.controllers import invoke_agent, resume_agent
+from sd_30.pages.common import reset_conversation
 
 
 @st.cache_resource

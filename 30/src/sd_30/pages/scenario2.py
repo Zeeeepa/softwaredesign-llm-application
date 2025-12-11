@@ -6,13 +6,13 @@ import uuid
 
 import streamlit as st
 
-from sd_29.agents.resilient_agent import (
+from sd_30.agents.resilient_agent import (
     clear_execution_log,
     create_resilient_agent,
     get_execution_log,
     get_metrics,
 )
-from sd_29.controllers import invoke_agent
+from sd_30.controllers import invoke_agent
 
 
 @st.cache_resource

@@ -7,7 +7,7 @@
 - Turn 3: データ分析
 - メトリクス確認
 """
-from sd_29.agents.resilient_agent import (
+from sd_30.agents.resilient_agent import (
     clear_execution_log,
     create_resilient_agent,
     get_execution_log,

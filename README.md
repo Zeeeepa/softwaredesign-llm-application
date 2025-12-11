@@ -39,4 +39,5 @@
 | 26 | DSPy MIPROv2によるRAG最適化 | JQaRAデータセットを使ったRAGパイプラインのMIPROv2最適化（検索クエリリライト+回答生成） |
 | 27 | DSPy GEPAによるRAG最適化 | GEPAを使ったRAGパイプラインの最適化、Reflective feedbackによる改善 |
 | 28 | DSPy GEPAによるReActエージェント最適化 | ファイル探索エージェントのGEPA自動最適化、LLM as a Judge評価、Tool仕様保持の実装 |
-| 29 | LangChain Middlewareデモ | LangChain 1.0のミドルウェア機能を活用した3つのデモ（PII保護、レジリエンス、ツール選択） |
+| 29 | LangChain v1.0 create_agent解説 | create_agentとミドルウェアの仕組みを解説するJupyter Notebook |
+| 30 | LangChain Middlewareデモ | LangChain 1.0のミドルウェア機能を活用した3つのデモ（PII保護、レジリエンス、ツール選択） |

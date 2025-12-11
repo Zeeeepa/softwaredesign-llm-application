@@ -5,7 +5,7 @@ LangChain Middleware デモアプリケーション
 import streamlit as st
 from dotenv import load_dotenv
 
-from sd_29.pages import common, scenario1, scenario2, scenario3
+from sd_30.pages import common, scenario1, scenario2, scenario3
 
 load_dotenv()
 
