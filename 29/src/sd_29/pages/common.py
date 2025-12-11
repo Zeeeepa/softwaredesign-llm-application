@@ -5,7 +5,6 @@
 import uuid
 
 import streamlit as st
-from langchain_core.messages import AIMessage
 
 
 def init_session_state() -> None:
@@ -16,27 +15,6 @@ def init_session_state() -> None:
         st.session_state.thread_id = str(uuid.uuid4())
     if "pending_approval" not in st.session_state:
         st.session_state.pending_approval = None
-
-
-def extract_response(result: dict) -> str:
-    """エージェントの実行結果から最後のAIメッセージを抽出"""
-    if not isinstance(result, dict) or "messages" not in result:
-        return str(result)
-
-    for msg in reversed(result["messages"]):
-        if isinstance(msg, AIMessage) and msg.content:
-            if isinstance(msg.content, str):
-                return msg.content
-            if isinstance(msg.content, list):
-                text_parts = [
-                    block["text"]
-                    for block in msg.content
-                    if isinstance(block, dict) and block.get("type") == "text"
-                ]
-                if text_parts:
-                    return "".join(text_parts)
-
-    return str(result)
 
 
 def render_sidebar() -> str:

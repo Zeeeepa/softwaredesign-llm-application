@@ -12,7 +12,7 @@ from sd_29.agents.resilient_agent import (
     get_execution_log,
     get_metrics,
 )
-from sd_29.pages.common import extract_response
+from sd_29.controllers import invoke_agent
 
 
 @st.cache_resource
@@ -70,33 +70,32 @@ def render() -> None:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
+    # チャット入力欄を表示し、ユーザーの入力を取得する
     if prompt := st.chat_input("質問してください (例: Pythonについて教えて)"):
+        # ユーザーのメッセージを履歴に追加する
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
 
         with st.chat_message("assistant"):
             with st.spinner("処理中 (リトライやフォールバックが発生する場合があります)..."):
-                try:
-                    agent = get_agent()
-                    result = agent.invoke(
-                        {"messages": [{"role": "user", "content": prompt}]},
-                        config={"configurable": {"thread_id": st.session_state.thread_id}},
-                    )
+                # キャッシュされたエージェントを取得する
+                agent = get_agent()
+                # エージェントにメッセージを送信し、応答を取得する
+                response = invoke_agent(agent, prompt, st.session_state.thread_id)
 
-                    response = extract_response(result)
-                    st.markdown(response)
-                    st.session_state.messages.append({
-                        "role": "assistant",
-                        "content": response
-                    })
-                except Exception as e:
-                    error_msg = f"エラーが発生しました: {str(e)}"
-                    st.error(error_msg)
-                    st.session_state.messages.append({
-                        "role": "assistant",
-                        "content": error_msg
-                    })
+                # リトライやフォールバックでも回復できなかった場合はエラー表示
+                if response.status == "error":
+                    st.error(response.message)
+                else:
+                    st.markdown(response.message)
+
+                # エージェントの応答をチャット履歴に追加する
+                st.session_state.messages.append({
+                    "role": "assistant",
+                    "content": response.message
+                })
+                # 画面を再描画して最新の状態を表示する
                 st.rerun()
 
     if st.button("会話とログをリセット"):

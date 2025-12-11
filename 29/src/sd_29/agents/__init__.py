@@ -2,6 +2,9 @@
 エージェントモジュール
 """
 
+from dataclasses import dataclass
+from typing import Literal
+
 from sd_29.agents.email_agent import (
     clear_sent_emails,
     create_email_agent,
@@ -21,7 +24,19 @@ from sd_29.agents.tool_selector_agent import (
     get_selected_tools,
 )
 
+
+@dataclass
+class AgentResponse:
+    """エージェント対話の結果"""
+
+    status: Literal["success", "pending_approval", "pii_blocked", "error"]
+    message: str
+    approval_info: dict | None = None
+
+
 __all__ = [
+    # 型
+    "AgentResponse",
     # email_agent
     "create_email_agent",
     "get_email_list",

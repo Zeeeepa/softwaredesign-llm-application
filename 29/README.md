@@ -1,6 +1,6 @@
 # Software Design誌「実践LLMアプリケーション開発」第29回サンプルコード
 
-LangChain 1.0のミドルウェア機能を活用した3つのデモアプリケーションです。
+LangChainのミドルウェア機能を活用した3つのデモアプリケーションです。
 
 ## サンプルコードの実行方法
 
@@ -25,7 +25,7 @@ $ vi .env # お好きなエディタで編集してください
 
 ```
 ANTHROPIC_API_KEY=your_anthropic_api_key_here
-LANGCHAIN_TRACING_V2=true
+LANGCHAIN_TRACING_V2=true # ※ LangSmithのAPIキー設定は必須ではありません
 LANGCHAIN_API_KEY=your_langsmith_key_here
 LANGCHAIN_PROJECT=sd-29
 ```
@@ -100,9 +100,13 @@ LLMによる動的ツール選択のデモ。
 ├── src/sd_29/
 │   ├── app.py                        # Streamlit エントリポイント
 │   ├── agents/
+│   │   ├── __init__.py               # AgentResponse型 + エクスポート
 │   │   ├── email_agent.py            # シナリオ1: メール処理
 │   │   ├── resilient_agent.py        # シナリオ2: レジリエンス
 │   │   └── tool_selector_agent.py    # シナリオ3: ツール選択
+│   ├── controllers/
+│   │   ├── __init__.py               # エクスポート
+│   │   └── base.py                   # エージェント対話処理
 │   ├── pages/
 │   │   ├── common.py                 # 共通ユーティリティ
 │   │   ├── scenario1.py              # シナリオ1 UI

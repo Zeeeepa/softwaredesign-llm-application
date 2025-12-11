@@ -3,8 +3,6 @@
 """
 
 import streamlit as st
-from langchain.agents.middleware._redaction import PIIDetectionError
-from langgraph.types import Command
 
 from sd_29.agents.email_agent import (
     clear_sent_emails,
@@ -12,7 +10,8 @@ from sd_29.agents.email_agent import (
     get_email_list,
     get_sent_emails,
 )
-from sd_29.pages.common import extract_response, reset_conversation
+from sd_29.controllers import invoke_agent, resume_agent
+from sd_29.pages.common import reset_conversation
 
 
 @st.cache_resource
@@ -78,46 +77,30 @@ def render() -> None:
         _render_approval_ui()
         return
 
-    # チャット入力
+    # チャット入力欄を表示し、ユーザーの入力を取得する
     if prompt := st.chat_input("メールについて質問してください (例: メール一覧を見せて)"):
+        # ユーザーのメッセージを履歴に追加する
         st.session_state.messages.append({"role": "user", "content": prompt})
 
         with st.spinner("処理中..."):
-            try:
-                agent = get_agent()
-                result = agent.invoke(
-                    {"messages": [{"role": "user", "content": prompt}]},
-                    config={"configurable": {"thread_id": st.session_state.thread_id}},
-                )
+            # キャッシュされたエージェントを取得する
+            agent = get_agent()
+            # エージェントにメッセージを送信し、応答を取得する
+            response = invoke_agent(agent, prompt, st.session_state.thread_id)
 
-                if "__interrupt__" in result:
-                    interrupt_info = result["__interrupt__"][0].value
-                    st.session_state.pending_approval = interrupt_info
-                    response = extract_response(result)
-                    if response:
-                        st.session_state.messages.append({
-                            "role": "assistant",
-                            "content": response
-                        })
-                else:
-                    response = extract_response(result)
-                    st.session_state.messages.append({
-                        "role": "assistant",
-                        "content": response
-                    })
-            except PIIDetectionError as e:
-                pii_type = "電話番号" if "phone" in str(e).lower() else "個人情報"
-                error_msg = f"入力に{pii_type}が含まれているため、処理をブロックしました。個人情報を含まない形で再度入力してください。"
+            # HumanInTheLoopMiddlewareによる割り込みが発生したか確認する
+            # send_emailツール実行前に承認が必要な場合、pending_approvalになる
+            if response.status == "pending_approval":
+                # 承認待ち情報をセッションに保存する (ツール名、引数などが含まれる)
+                st.session_state.pending_approval = response.approval_info
+
+            # エージェントの応答をチャット履歴に追加する
+            if response.message:
                 st.session_state.messages.append({
                     "role": "assistant",
-                    "content": error_msg
+                    "content": response.message
                 })
-            except Exception as e:
-                error_msg = f"エラーが発生しました: {str(e)}"
-                st.session_state.messages.append({
-                    "role": "assistant",
-                    "content": error_msg
-                })
+        # 画面を再描画して最新の状態を表示する
         st.rerun()
 
     if st.button("会話をリセット"):
@@ -128,11 +111,14 @@ def render() -> None:
 
 def _render_approval_ui() -> None:
     """承認UIを描画"""
+    # セッションから承認待ち情報を取得する
     approval_info = st.session_state.pending_approval
     st.warning("メール送信の承認待ちです")
 
+    # 割り込み情報からツール実行の詳細を表示する
     if "action_requests" in approval_info:
         for req in approval_info["action_requests"]:
+            # send_emailツールの引数 (宛先、件名、本文) を表示する
             if req["name"] == "send_email":
                 args = req["args"]
                 st.markdown(f"""
@@ -144,40 +130,32 @@ def _render_approval_ui() -> None:
 > {args.get('body', '').replace(chr(10), chr(10) + '> ')}
 """)
 
+    # 承認・却下ボタンを横並びで表示する
     col1, col2 = st.columns(2)
     with col1:
         if st.button("承認", type="primary", use_container_width=True):
             with st.spinner("送信中..."):
-                try:
-                    agent = get_agent()
-                    result = agent.invoke(
-                        Command(resume={"decisions": [{"type": "approve"}]}),
-                        config={"configurable": {"thread_id": st.session_state.thread_id}},
-                    )
-                    response = extract_response(result)
-                    st.session_state.messages.append({
-                        "role": "assistant",
-                        "content": response
-                    })
-                except Exception as e:
-                    st.session_state.messages.append({
-                        "role": "assistant",
-                        "content": f"エラー: {str(e)}"
-                    })
+                # キャッシュされたエージェントを取得する
+                agent = get_agent()
+                # "approve"を送信して、中断されていたsend_emailツールを実行する
+                response = resume_agent(agent, "approve", st.session_state.thread_id)
+                # ツール実行後のエージェントの応答を履歴に追加する
+                st.session_state.messages.append({
+                    "role": "assistant",
+                    "content": response.message
+                })
+            # 承認待ち状態をクリアする
             st.session_state.pending_approval = None
             st.rerun()
     with col2:
         if st.button("却下", use_container_width=True):
             with st.spinner("処理中..."):
-                try:
-                    agent = get_agent()
-                    agent.invoke(
-                        Command(resume={"decisions": [{"type": "reject"}]}),
-                        config={"configurable": {"thread_id": st.session_state.thread_id}},
-                    )
-                except Exception:
-                    pass
+                agent = get_agent()
+                # "reject"を送信して、ツール実行をスキップする
+                resume_agent(agent, "reject", st.session_state.thread_id)
+            # 承認待ち状態をクリアする
             st.session_state.pending_approval = None
+            # 却下メッセージを履歴に追加する
             st.session_state.messages.append({
                 "role": "assistant",
                 "content": "メール送信を却下しました。"
