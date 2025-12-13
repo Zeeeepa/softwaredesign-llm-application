@@ -136,3 +136,6 @@ CLAUDE.md
 
 # macOS system files
 .DS_Store
+
+tmp/
+repomix.config.json
