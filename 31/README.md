@@ -1,4 +1,4 @@
-# Software Design誌「実践LLMアプリケーション開発」第30回サンプルコード
+# Software Design誌「実践LLMアプリケーション開発」第31回サンプルコード
 
 LangChainのミドルウェア機能を活用した3つのデモアプリケーションです。
 
@@ -27,7 +27,7 @@ $ vi .env # お好きなエディタで編集してください
 ANTHROPIC_API_KEY=your_anthropic_api_key_here
 LANGCHAIN_TRACING_V2=true # ※ LangSmithのAPIキー設定は必須ではありません
 LANGCHAIN_API_KEY=your_langsmith_key_here
-LANGCHAIN_PROJECT=sd-29
+LANGCHAIN_PROJECT=sd-31
 ```
 
 - `ANTHROPIC_API_KEY`: Anthropic Claude APIのキー
@@ -96,8 +96,8 @@ LLMによる動的ツール選択のデモ。
 ## ファイル構成
 
 ```
-29/
-├── src/sd_29/
+31/
+├── src/sd_31/
 │   ├── app.py                        # Streamlit エントリポイント
 │   ├── agents/
 │   │   ├── __init__.py               # AgentResponse型 + エクスポート

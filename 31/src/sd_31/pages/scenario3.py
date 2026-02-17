@@ -2,17 +2,18 @@
 シナリオ3: ツール選択エージェント
 """
 
-import uuid
-
 import streamlit as st
 
-from sd_30.agents.tool_selector_agent import (
+from sd_31.agents.tool_selector_agent import (
     clear_selected_tools,
     create_tool_selector_agent,
     get_all_tool_names,
     get_selected_tools,
 )
-from sd_30.controllers import invoke_agent
+from sd_31.controllers import invoke_agent
+from sd_31.pages.common import ensure_scenario_state, reset_conversation
+
+SCENARIO_ID = "scenario3"
 
 
 @st.cache_resource
@@ -23,6 +24,7 @@ def get_agent():
 
 def render() -> None:
     """シナリオ3の画面を描画"""
+    state = ensure_scenario_state(SCENARIO_ID)
     st.title("ツール選択エージェント")
 
     with st.expander("このエージェントについて", expanded=True):
@@ -61,14 +63,14 @@ def render() -> None:
 
     st.divider()
 
-    for message in st.session_state.messages:
+    for message in state["messages"]:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
     # チャット入力欄を表示し、ユーザーの入力を取得する
     if prompt := st.chat_input("質問してください (例: 東京の天気と株価を教えて)"):
         # ユーザーのメッセージを履歴に追加する
-        st.session_state.messages.append({"role": "user", "content": prompt})
+        state["messages"].append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
 
@@ -79,7 +81,7 @@ def render() -> None:
                 # エージェントにメッセージを送信し、応答を取得する
                 # ミドルウェアが質問を分析し、12個のツールから最適な3つを選択する
                 # 選択されたツールはget_selected_tools()で確認できる
-                response = invoke_agent(agent, prompt, st.session_state.thread_id)
+                response = invoke_agent(agent, prompt, state["thread_id"])
 
                 # エラーが発生した場合はエラー表示
                 if response.status == "error":
@@ -88,7 +90,7 @@ def render() -> None:
                     st.markdown(response.message)
 
                 # エージェントの応答をチャット履歴に追加する
-                st.session_state.messages.append({
+                state["messages"].append({
                     "role": "assistant",
                     "content": response.message
                 })
@@ -96,7 +98,6 @@ def render() -> None:
                 st.rerun()
 
     if st.button("会話をリセット"):
-        st.session_state.messages = []
-        st.session_state.thread_id = str(uuid.uuid4())
+        reset_conversation(SCENARIO_ID)
         clear_selected_tools()
         st.rerun()

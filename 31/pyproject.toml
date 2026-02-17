@@ -3,9 +3,9 @@ requires = ["setuptools>=42", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "sd-30"
+name = "sd-31"
 version = "0.1.0"
-description = "LangChain Middleware デモアプリケーション"
+description = "Software Design誌 第31回 デモアプリケーション"
 requires-python = ">=3.12"
 dependencies = [
     "streamlit>=1.52.1",

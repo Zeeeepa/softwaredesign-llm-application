@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 def main() -> None:
-    app_path = Path(__file__).parent / "src" / "sd_30" / "app.py"
+    app_path = Path(__file__).parent / "src" / "sd_31" / "app.py"
     subprocess.run([sys.executable, "-m", "streamlit", "run", str(app_path)])
 
 

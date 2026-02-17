@@ -4,14 +4,16 @@
 
 import streamlit as st
 
-from sd_30.agents.email_agent import (
+from sd_31.agents.email_agent import (
     clear_sent_emails,
     create_email_agent,
     get_email_list,
     get_sent_emails,
 )
-from sd_30.controllers import invoke_agent, resume_agent
-from sd_30.pages.common import reset_conversation
+from sd_31.controllers import invoke_agent, resume_agent
+from sd_31.pages.common import ensure_scenario_state, reset_conversation
+
+SCENARIO_ID = "scenario1"
 
 
 @st.cache_resource
@@ -22,6 +24,7 @@ def get_agent():
 
 def render() -> None:
     """シナリオ1の画面を描画"""
+    state = ensure_scenario_state(SCENARIO_ID)
     st.title("メール処理エージェント")
 
     with st.expander("このエージェントについて", expanded=True):
@@ -68,35 +71,35 @@ def render() -> None:
 
     st.divider()
 
-    for message in st.session_state.messages:
+    for message in state["messages"]:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
     # 承認待ちの処理
-    if st.session_state.pending_approval:
-        _render_approval_ui()
+    if state["pending_approval"]:
+        _render_approval_ui(state)
         return
 
     # チャット入力欄を表示し、ユーザーの入力を取得する
     if prompt := st.chat_input("メールについて質問してください (例: メール一覧を見せて)"):
         # ユーザーのメッセージを履歴に追加する
-        st.session_state.messages.append({"role": "user", "content": prompt})
+        state["messages"].append({"role": "user", "content": prompt})
 
         with st.spinner("処理中..."):
             # キャッシュされたエージェントを取得する
             agent = get_agent()
             # エージェントにメッセージを送信し、応答を取得する
-            response = invoke_agent(agent, prompt, st.session_state.thread_id)
+            response = invoke_agent(agent, prompt, state["thread_id"])
 
             # HumanInTheLoopMiddlewareによる割り込みが発生したか確認する
             # send_emailツール実行前に承認が必要な場合、pending_approvalになる
             if response.status == "pending_approval":
                 # 承認待ち情報をセッションに保存する (ツール名、引数などが含まれる)
-                st.session_state.pending_approval = response.approval_info
+                state["pending_approval"] = response.approval_info
 
             # エージェントの応答をチャット履歴に追加する
             if response.message:
-                st.session_state.messages.append({
+                state["messages"].append({
                     "role": "assistant",
                     "content": response.message
                 })
@@ -104,15 +107,15 @@ def render() -> None:
         st.rerun()
 
     if st.button("会話をリセット"):
-        reset_conversation()
+        reset_conversation(SCENARIO_ID)
         clear_sent_emails()
         st.rerun()
 
 
-def _render_approval_ui() -> None:
+def _render_approval_ui(state: dict) -> None:
     """承認UIを描画"""
     # セッションから承認待ち情報を取得する
-    approval_info = st.session_state.pending_approval
+    approval_info = state["pending_approval"]
     st.warning("メール送信の承認待ちです")
 
     # 割り込み情報からツール実行の詳細を表示する
@@ -138,25 +141,25 @@ def _render_approval_ui() -> None:
                 # キャッシュされたエージェントを取得する
                 agent = get_agent()
                 # "approve"を送信して、中断されていたsend_emailツールを実行する
-                response = resume_agent(agent, "approve", st.session_state.thread_id)
+                response = resume_agent(agent, "approve", state["thread_id"])
                 # ツール実行後のエージェントの応答を履歴に追加する
-                st.session_state.messages.append({
+                state["messages"].append({
                     "role": "assistant",
                     "content": response.message
                 })
             # 承認待ち状態をクリアする
-            st.session_state.pending_approval = None
+            state["pending_approval"] = None
             st.rerun()
     with col2:
         if st.button("却下", use_container_width=True):
             with st.spinner("処理中..."):
                 agent = get_agent()
                 # "reject"を送信して、ツール実行をスキップする
-                resume_agent(agent, "reject", st.session_state.thread_id)
+                resume_agent(agent, "reject", state["thread_id"])
             # 承認待ち状態をクリアする
-            st.session_state.pending_approval = None
+            state["pending_approval"] = None
             # 却下メッセージを履歴に追加する
-            st.session_state.messages.append({
+            state["messages"].append({
                 "role": "assistant",
                 "content": "メール送信を却下しました。"
             })
