@@ -7,7 +7,7 @@
 - Turn 3: 株価とニュース (stock_price, news, searchが選択されるはず)
 - ツール選択の動的変化を確認
 """
-from sd_30.agents.tool_selector_agent import (
+from sd_31.agents.tool_selector_agent import (
     clear_selected_tools,
     create_tool_selector_agent,
     get_all_tool_names,

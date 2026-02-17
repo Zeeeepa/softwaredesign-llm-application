@@ -6,7 +6,7 @@ from langchain.agents.middleware._redaction import PIIDetectionError
 from langchain_core.messages import AIMessage
 from langgraph.types import Command
 
-from sd_30.agents import AgentResponse
+from sd_31.agents import AgentResponse
 
 
 def _extract_response(result: dict) -> str:

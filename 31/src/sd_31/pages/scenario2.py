@@ -2,17 +2,18 @@
 シナリオ2: レジリエンスエージェント
 """
 
-import uuid
-
 import streamlit as st
 
-from sd_30.agents.resilient_agent import (
+from sd_31.agents.resilient_agent import (
     clear_execution_log,
     create_resilient_agent,
     get_execution_log,
     get_metrics,
 )
-from sd_30.controllers import invoke_agent
+from sd_31.controllers import invoke_agent
+from sd_31.pages.common import ensure_scenario_state, reset_conversation
+
+SCENARIO_ID = "scenario2"
 
 
 @st.cache_resource
@@ -23,6 +24,7 @@ def get_agent():
 
 def render() -> None:
     """シナリオ2の画面を描画"""
+    state = ensure_scenario_state(SCENARIO_ID)
     st.title("レジリエンスエージェント")
 
     with st.expander("このエージェントについて", expanded=True):
@@ -40,7 +42,7 @@ def render() -> None:
         - **ModelRetryMiddleware**: モデルエラー時に自動リトライ
 
         ### テスト方法
-        1. 「Pythonについて検索して」と入力
+        1. 「PythonについてWebやデータベースから網羅的に検索して」と入力
            - 実行ログで成功/失敗の状態を確認
            - 失敗時は自動リトライされる
         2. 何度か質問を繰り返して、エラー発生とリトライの様子を観察
@@ -66,14 +68,14 @@ def render() -> None:
 
     st.divider()
 
-    for message in st.session_state.messages:
+    for message in state["messages"]:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
     # チャット入力欄を表示し、ユーザーの入力を取得する
     if prompt := st.chat_input("質問してください (例: Pythonについて教えて)"):
         # ユーザーのメッセージを履歴に追加する
-        st.session_state.messages.append({"role": "user", "content": prompt})
+        state["messages"].append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
 
@@ -82,7 +84,7 @@ def render() -> None:
                 # キャッシュされたエージェントを取得する
                 agent = get_agent()
                 # エージェントにメッセージを送信し、応答を取得する
-                response = invoke_agent(agent, prompt, st.session_state.thread_id)
+                response = invoke_agent(agent, prompt, state["thread_id"])
 
                 # リトライやフォールバックでも回復できなかった場合はエラー表示
                 if response.status == "error":
@@ -91,7 +93,7 @@ def render() -> None:
                     st.markdown(response.message)
 
                 # エージェントの応答をチャット履歴に追加する
-                st.session_state.messages.append({
+                state["messages"].append({
                     "role": "assistant",
                     "content": response.message
                 })
@@ -99,7 +101,6 @@ def render() -> None:
                 st.rerun()
 
     if st.button("会話とログをリセット"):
-        st.session_state.messages = []
-        st.session_state.thread_id = str(uuid.uuid4())
+        reset_conversation(SCENARIO_ID)
         clear_execution_log()
         st.rerun()
