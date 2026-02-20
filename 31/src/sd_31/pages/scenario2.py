@@ -85,18 +85,20 @@ def render() -> None:
                 agent = get_agent()
                 # エージェントにメッセージを送信し、応答を取得する
                 response = invoke_agent(agent, prompt, state["thread_id"])
+                response_message = response.message
 
                 # リトライやフォールバックでも回復できなかった場合はエラー表示
                 if response.status == "error":
-                    st.error(response.message)
-                else:
-                    st.markdown(response.message)
+                    st.error(response_message or "エラーが発生しました。")
+                elif response_message:
+                    st.markdown(response_message)
 
                 # エージェントの応答をチャット履歴に追加する
-                state["messages"].append({
-                    "role": "assistant",
-                    "content": response.message
-                })
+                if response_message:
+                    state["messages"].append({
+                        "role": "assistant",
+                        "content": response_message
+                    })
                 # 画面を再描画して最新の状態を表示する
                 st.rerun()
 

@@ -30,7 +30,7 @@ class AgentResponse:
     """エージェント対話の結果"""
 
     status: Literal["success", "pending_approval", "pii_blocked", "error"]
-    message: str
+    message: str | None
     approval_info: dict | None = None
 
 

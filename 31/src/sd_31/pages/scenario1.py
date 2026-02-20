@@ -10,6 +10,7 @@ from sd_31.agents.email_agent import (
     get_email_list,
     get_sent_emails,
 )
+from sd_31.agents import AgentResponse
 from sd_31.controllers import invoke_agent, resume_agent
 from sd_31.pages.common import ensure_scenario_state, reset_conversation
 
@@ -82,27 +83,12 @@ def render() -> None:
 
     # チャット入力欄を表示し、ユーザーの入力を取得する
     if prompt := st.chat_input("メールについて質問してください (例: メール一覧を見せて)"):
-        # ユーザーのメッセージを履歴に追加する
-        state["messages"].append({"role": "user", "content": prompt})
-
         with st.spinner("処理中..."):
             # キャッシュされたエージェントを取得する
             agent = get_agent()
             # エージェントにメッセージを送信し、応答を取得する
             response = invoke_agent(agent, prompt, state["thread_id"])
-
-            # HumanInTheLoopMiddlewareによる割り込みが発生したか確認する
-            # send_emailツール実行前に承認が必要な場合、pending_approvalになる
-            if response.status == "pending_approval":
-                # 承認待ち情報をセッションに保存する (ツール名、引数などが含まれる)
-                state["pending_approval"] = response.approval_info
-
-            # エージェントの応答をチャット履歴に追加する
-            if response.message:
-                state["messages"].append({
-                    "role": "assistant",
-                    "content": response.message
-                })
+            _apply_agent_response_to_state(state, prompt, response)
         # 画面を再描画して最新の状態を表示する
         st.rerun()
 
@@ -143,10 +129,11 @@ def _render_approval_ui(state: dict) -> None:
                 # "approve"を送信して、中断されていたsend_emailツールを実行する
                 response = resume_agent(agent, "approve", state["thread_id"])
                 # ツール実行後のエージェントの応答を履歴に追加する
-                state["messages"].append({
-                    "role": "assistant",
-                    "content": response.message
-                })
+                if response.message:
+                    state["messages"].append({
+                        "role": "assistant",
+                        "content": response.message
+                    })
             # 承認待ち状態をクリアする
             state["pending_approval"] = None
             st.rerun()
@@ -164,3 +151,18 @@ def _render_approval_ui(state: dict) -> None:
                 "content": "メール送信を却下しました。"
             })
             st.rerun()
+
+
+def _apply_agent_response_to_state(state: dict, prompt: str, response: AgentResponse) -> None:
+    """応答ステータスに応じてチャット状態を更新する。"""
+    if response.status != "pii_blocked":
+        state["messages"].append({"role": "user", "content": prompt})
+
+    if response.status == "pending_approval":
+        state["pending_approval"] = response.approval_info
+
+    if response.message:
+        state["messages"].append({
+            "role": "assistant",
+            "content": response.message,
+        })
