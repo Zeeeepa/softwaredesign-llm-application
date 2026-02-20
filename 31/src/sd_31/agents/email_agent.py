@@ -124,7 +124,12 @@ def create_email_agent():
         checkpointer=InMemorySaver(),
         middleware=[
             # メールアドレスをマスク
-            PIIMiddleware("email", strategy="redact", apply_to_input=True),
+            PIIMiddleware(
+                "email",
+                strategy="redact",
+                apply_to_input=True,
+                apply_to_tool_results=True,
+            ),
             # 電話番号をブロック
             PIIMiddleware(
                 "phone_number",

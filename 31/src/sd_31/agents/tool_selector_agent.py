@@ -316,6 +316,7 @@ def create_tool_selector_agent():
         model="anthropic:claude-sonnet-4-5",
         tools=ALL_TOOLS,
         system_prompt=TOOL_SELECTOR_AGENT_SYSTEM_PROMPT,
+        checkpointer=InMemorySaver(),
         middleware=[
             # LLMで事前に最大3つのツールを選択
             LoggingToolSelectorMiddleware(

@@ -15,6 +15,8 @@ from sd_31.agents.email_agent import (
     create_email_agent,
     get_sent_emails,
 )
+from sd_31.controllers import invoke_agent
+from sd_31.pages.scenario1 import _apply_agent_response_to_state
 from tests.conftest import extract_response
 
 
@@ -60,6 +62,8 @@ def test_email_agent_multi_turn(thread_id):
 
     # 検証: メール内容が含まれる
     assert "田中" in response2 or "プロジェクト" in response2 or "進捗" in response2
+    assert "tanaka.taro@example.com" not in response2
+    assert "yamada.hanako@example.com" not in response2
     print("[OK] Turn 2: メール読み取り成功")
 
     # =================================================================
@@ -158,3 +162,24 @@ def test_email_agent_multi_turn(thread_id):
     print("Turn 4 (HITL interrupt): OK")
     print("Turn 5 (承認・送信): OK")
     print(f"sent_emails: {get_sent_emails()}")
+
+
+def test_blocked_input_is_not_persisted_in_scenario_state(thread_id):
+    """PIIブロックされた入力がscenario1のmessagesに残らないことを確認"""
+    agent = create_email_agent()
+    state = {
+        "messages": [],
+        "thread_id": thread_id,
+        "pending_approval": None,
+    }
+
+    blocked_prompt = (
+        "田中さんに返信して。本文は「了解しました。何かあれば090-1234-5678に連絡ください」で。"
+    )
+    response = invoke_agent(agent, blocked_prompt, thread_id)
+
+    assert response.status == "pii_blocked"
+    _apply_agent_response_to_state(state, blocked_prompt, response)
+
+    assert blocked_prompt not in [m["content"] for m in state["messages"] if m["role"] == "user"]
+    assert any(m["role"] == "assistant" for m in state["messages"])

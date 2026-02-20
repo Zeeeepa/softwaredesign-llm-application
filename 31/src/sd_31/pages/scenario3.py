@@ -82,18 +82,20 @@ def render() -> None:
                 # ミドルウェアが質問を分析し、12個のツールから最適な3つを選択する
                 # 選択されたツールはget_selected_tools()で確認できる
                 response = invoke_agent(agent, prompt, state["thread_id"])
+                response_message = response.message
 
                 # エラーが発生した場合はエラー表示
                 if response.status == "error":
-                    st.error(response.message)
-                else:
-                    st.markdown(response.message)
+                    st.error(response_message or "エラーが発生しました。")
+                elif response_message:
+                    st.markdown(response_message)
 
                 # エージェントの応答をチャット履歴に追加する
-                state["messages"].append({
-                    "role": "assistant",
-                    "content": response.message
-                })
+                if response_message:
+                    state["messages"].append({
+                        "role": "assistant",
+                        "content": response_message
+                    })
                 # 画面を再描画して最新の状態を表示する (選択されたツールも更新される)
                 st.rerun()
 
